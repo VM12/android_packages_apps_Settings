@@ -46,4 +46,12 @@
                 settings:advanced="true"
                 />
 
+        <!-- Lock screen -->
+        <PreferenceScreen
+                android:id="@+id/lockscreen_settings"
+                android:title="@string/lockscreen_settings"
+                android:fragment="com.android.settings.lockscreen.LockScreenSettings"
+                android:icon="@drawable/ic_settings_security"
+                />
+
 </PreferenceScreen>
