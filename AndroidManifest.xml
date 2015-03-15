@@ -2076,6 +2076,10 @@
                 android:value="true" />
         </activity>
 
+        <!-- VM12 TWEAKS START -->
+        <activity android:name=".vm12.vm12Settings" />
+        <!-- VM12 TWEAKS END -->
+
         <activity android:name=".applications.ProtectedAppsActivity"
                   android:label="@string/protected_apps"
                   android:excludeFromRecents="true"

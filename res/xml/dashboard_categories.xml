@@ -106,6 +106,19 @@
         </dashboard-tile>
 
     </dashboard-category>
+    
+        <!-- VM12 -->
+    <dashboard-category
+            android:id="@+id/vm12_section"
+            android:title="@string/header_category" >
+	    	
+        <dashboard-tile
+                android:id="@+id/vm12_settings"
+                android:title="@string/tweaks_title"
+                android:fragment="com.android.settings.vm12.vm12Settings"
+                android:icon="@drawable/tnlogo"
+                />
+    </dashboard-category>
 
     <!-- DEVICE -->
     <dashboard-category
