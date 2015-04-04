@@ -78,7 +78,6 @@ import com.android.settings.applications.ManageApplications;
 import com.android.settings.applications.ProcessStatsUi;
 import com.android.settings.blacklist.BlacklistSettings;
 import com.android.settings.bluetooth.BluetoothSettings;
-import com.android.settings.cyanogenmod.DisplayRotation;
 import com.android.settings.dashboard.DashboardCategory;
 import com.android.settings.dashboard.DashboardSummary;
 import com.android.settings.dashboard.DashboardTile;
@@ -194,6 +193,11 @@ public class SettingsActivity extends Activity
      * that fragment.
      */
     public static final String EXTRA_SHOW_FRAGMENT_TITLE = ":settings:show_fragment_title";
+    /**
+     * The package name used to resolve the title resource id.
+     */
+    public static final String EXTRA_SHOW_FRAGMENT_TITLE_RES_PACKAGE_NAME =
+            ":settings:show_fragment_title_res_package_name";
     public static final String EXTRA_SHOW_FRAGMENT_TITLE_RESID =
             ":settings:show_fragment_title_resid";
     public static final String EXTRA_SHOW_FRAGMENT_AS_SHORTCUT =
@@ -318,8 +322,7 @@ public class SettingsActivity extends Activity
             com.android.settings.cyanogenmod.PrivacySettings.class.getName(),
             NotificationManagerSettings.class.getName(),
             LockScreenSettings.class.getName(),
-            LiveDisplay.class.getName(),
-            DisplayRotation.class.getName()
+            LiveDisplay.class.getName()
     };
 
 
@@ -676,7 +679,23 @@ public class SettingsActivity extends Activity
         if (initialTitleResId > 0) {
             mInitialTitle = null;
             mInitialTitleResId = initialTitleResId;
-            setTitle(mInitialTitleResId);
+
+            final String initialTitleResPackageName = intent.getStringExtra(
+                    EXTRA_SHOW_FRAGMENT_TITLE_RES_PACKAGE_NAME);
+            if (initialTitleResPackageName != null) {
+                try {
+                    Context authContext = createPackageContextAsUser(initialTitleResPackageName,
+                            0 /* flags */, new UserHandle(UserHandle.myUserId()));
+                    mInitialTitle = authContext.getResources().getText(mInitialTitleResId);
+                    setTitle(mInitialTitle);
+                    mInitialTitleResId = -1;
+                    return;
+                } catch (NameNotFoundException e) {
+                    Log.w(LOG_TAG, "Could not find package" + initialTitleResPackageName);
+                }
+            } else {
+                setTitle(mInitialTitleResId);
+            }
         } else {
             mInitialTitleResId = -1;
             final String initialTitle = intent.getStringExtra(EXTRA_SHOW_FRAGMENT_TITLE);
@@ -1418,11 +1437,15 @@ public class SettingsActivity extends Activity
         super.onNewIntent(intent);
     }
 
+    /**
+     * Showing "advanced options" on a retail build involves a toggle,
+     * however, it should always show all advanced options if the option is enabled
+     * by default in an overlay.
+     */
     public static boolean showAdvancedPreferences(Context context) {
-        return android.provider.Settings.Secure.getInt(
-                context.getContentResolver(),
-                android.provider.Settings.Secure.ADVANCED_MODE, 1) == 1;
+        return (android.provider.Settings.Secure.getInt(context.getContentResolver(),
+                android.provider.Settings.Secure.ADVANCED_MODE, 1) == 1)
+                && context.getResources().getBoolean(
+                com.android.internal.R.bool.config_advancedSettingsMode);
     }
-
-
 }

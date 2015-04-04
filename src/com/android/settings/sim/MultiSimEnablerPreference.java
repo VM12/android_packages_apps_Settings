@@ -33,32 +33,38 @@ package com.android.settings.sim;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.res.Resources;
+import android.graphics.Paint;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.ShapeDrawable;
+import android.graphics.drawable.shapes.OvalShape;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.Preference;
 import android.preference.SwitchPreference;
 import android.provider.Settings;
-import android.telephony.SubInfoRecord;
 import android.telephony.SubscriptionManager;
+import android.telephony.SubscriptionInfo;
 import android.telephony.TelephonyManager;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.internal.telephony.SubscriptionController;
 import com.android.internal.telephony.TelephonyIntents;
 import com.android.settings.R;
+import com.android.settings.Utils;
 
 import java.util.List;
 
@@ -75,17 +81,13 @@ public class MultiSimEnablerPreference extends SwitchPreference implements
     private static final int EVT_SHOW_RESULT_DLG = 2;
     private static final int EVT_PROGRESS_DLG_TIME_OUT = 3;
 
-    private static final IntentFilter SUB_CHANGE_FILTER =
-            new IntentFilter(TelephonyIntents.ACTION_SUBINFO_CONTENT_CHANGE);
-
     private int mSlotId;
-    private SubInfoRecord mSir;
+    private SubscriptionInfo mSir;
 
     private Boolean mTargetState = null;
     private Handler mParentHandler = null;
     private AlertDialog mConfirmationDialog = null;
     private ProgressDialog mProgressDialog = null;
-    private boolean mReceiverRegistered;
     private boolean mClicking;
     private Switch mSwitch;
 
@@ -93,15 +95,27 @@ public class MultiSimEnablerPreference extends SwitchPreference implements
     private static final int PROGRESS_DLG_TIME_OUT = 30000;
     private static final int MSG_DELAY_TIME = 2000;
 
-    public MultiSimEnablerPreference(Context context, SubInfoRecord sir,
-            Handler handler, int slotId) {
+    private SubscriptionManager mSubscriptionManager;
+
+    private int[] mTintArr;
+    private String[] mColorStrings;
+    private int mTintSelectorPos;
+
+    public MultiSimEnablerPreference(Context context, SubscriptionInfo sir, Handler handler,
+            int slotId) {
         super(context);
-        logd("Constructor: " + sir);
+
         mSlotId = slotId;
         mSir = sir;
         mParentHandler = handler;
+        mSubscriptionManager = SubscriptionManager.from(context);
+        mTintArr = context.getResources().getIntArray(com.android.internal.R.array.sim_colors);
+        mColorStrings = context.getResources().getStringArray(R.array.color_picker);
+        mTintSelectorPos = 0;
+
         setOnPreferenceChangeListener(this);
         setPersistent(false);
+        setTitle(context.getString(R.string.sim_card_number_title, mSlotId + 1));
     }
 
     public void update() {
@@ -112,20 +126,21 @@ public class MultiSimEnablerPreference extends SwitchPreference implements
 
         logd("update() isSubValid "  + isSubValid);
         if (isSubValid) {
-            setTitle(getSimDisplayName());
-            updateSummary();
+            setSummary(getContext().getString(R.string.sim_settings_summary,
+                    getSimDisplayName(), mSir.getNumber()));
+            setIcon(new BitmapDrawable(getContext().getResources(),
+                    mSir.createIconBitmap(getContext())));
+
+            boolean isActivated = mSir.mStatus == SubscriptionManager.ACTIVE;
+            updateCheckedState(isActivated);
         } else {
-            setTitle(getContext().getResources().getString(
-                    R.string.sim_card_number_title, mSlotId + 1));
             setSummary(R.string.sim_slot_empty);
+            setIcon(null);
         }
     }
 
     public void cleanUp() {
-        if (mReceiverRegistered) {
-            getContext().unregisterReceiver(mReceiver);
-            mReceiverRegistered = false;
-        }
+         mSubscriptionManager.removeOnSubscriptionsChangedListener(mSubscriptionListener);
         dismissProgressDialog();
         if (mConfirmationDialog != null) {
             mConfirmationDialog.dismiss();
@@ -140,47 +155,58 @@ public class MultiSimEnablerPreference extends SwitchPreference implements
         final View dialogLayout = inflater.inflate(R.layout.multi_sim_dialog, null);
         builder.setView(dialogLayout);
 
-        final EditText nameText = (EditText) dialogLayout.findViewById(R.id.sim_name);
-        nameText.setText(mSir.displayName);
+        final EditText nameText = (EditText)dialogLayout.findViewById(R.id.sim_name);
+        nameText.setText(mSir.getDisplayName());
 
-        TextView numberView = (TextView)dialogLayout.findViewById(R.id.number);
-        numberView.setText(mSir.number);
-
-        TextView carrierView = (TextView)dialogLayout.findViewById(R.id.carrier);
-        TelephonyManager tm = (TelephonyManager)
-                getContext().getSystemService(Context.TELEPHONY_SERVICE);
-        String spn = tm.getSimOperatorName(mSir.subId);
-        if (TextUtils.isEmpty(spn) && !tm.isNetworkRoaming(mSir.subId)) {
-            // Operator did not write the SPN inside the SIM, so set
-            // the current network operator as the SIM name, but only if
-            // we're not roaming.
-            spn = tm.getNetworkOperatorName(mSir.subId);
+        final Spinner tintSpinner = (Spinner) dialogLayout.findViewById(R.id.spinner);
+        SelectColorAdapter adapter = new SelectColorAdapter(getContext(),
+                R.layout.settings_color_picker_item, mColorStrings);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        tintSpinner.setAdapter(adapter);
+        for (int i = 0; i < mTintArr.length; i++) {
+            if (mTintArr[i] == mSir.getIconTint()) {
+                tintSpinner.setSelection(i);
+                mTintSelectorPos = i;
+                break;
+            }
         }
-        carrierView.setText(spn);
+        tintSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
+                tintSpinner.setSelection(pos);
+                mTintSelectorPos = pos;
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
 
-        builder.setTitle(R.string.sim_editor_title);
+        final TextView numberView = (TextView)dialogLayout.findViewById(R.id.number);
+        numberView.setText(mSir.getNumber());
+
+        final TextView carrierView = (TextView)dialogLayout.findViewById(R.id.carrier);
+        carrierView.setText(mSir.getCarrierName());
+
+        builder.setTitle(getContext().getString(R.string.sim_editor_title,
+                mSir.getSimSlotIndex() + 1));
 
         builder.setPositiveButton(R.string.okay, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int whichButton) {
-                final Spinner displayNumbers =
-                        (Spinner)dialogLayout.findViewById(R.id.display_numbers);
+                mSir.setDisplayName(nameText.getText());
+                mSubscriptionManager.setDisplayName(mSir.getDisplayName().toString(),
+                        mSir.getSubscriptionId());
 
-                final int formatSetting = displayNumbers.getSelectedItemPosition() == 0
-                        ? SubscriptionManager.DISPLAY_NUMBER_LAST
-                        : SubscriptionManager.DISPLAY_NUMBER_FIRST;
-                SubscriptionManager.setDisplayNumberFormat(formatSetting, mSir.subId);
-
-                mSir.displayName = nameText.getText().toString();
-                SubscriptionManager.setDisplayName(mSir.displayName,
-                        mSir.subId, SubscriptionManager.NAME_SOURCE_USER_INPUT);
+                final int tintSelected = tintSpinner.getSelectedItemPosition();
+                int subscriptionId = mSir.getSubscriptionId();
+                int tint = mTintArr[tintSelected];
+                mSir.setIconTint(tint);
+                mSubscriptionManager.setIconTint(tint, subscriptionId);
 
                 update();
             }
         });
-
         builder.setNegativeButton(R.string.cancel, null);
-
         builder.show();
     }
 
@@ -232,40 +258,28 @@ public class MultiSimEnablerPreference extends SwitchPreference implements
             return false;
         }
 
-        List<SubInfoRecord> sirList = SubscriptionManager.getActiveSubInfoList();
+        List<SubscriptionInfo> sirList = mSubscriptionManager.getActiveSubscriptionInfoList();
         if (sirList == null) {
             return false;
         }
 
-        for (SubInfoRecord sir : sirList) {
-            if (sir != null && mSlotId == sir.slotId) {
+        for (SubscriptionInfo sir : sirList) {
+            if (sir != null && mSlotId == sir.getSimSlotIndex()) {
                 mSir = sir;
                 break;
             }
         }
 
-        return mSir != null && mSir.subId > 0 && mSir.slotId >= 0
+        return mSir != null && mSir.getSubscriptionId() > 0 && mSir.getSimSlotIndex() >= 0
                 && mSir.mStatus != SubscriptionManager.SUB_CONFIGURATION_IN_PROGRESS;
     }
 
-    private String getSimDisplayName() {
+    private CharSequence getSimDisplayName() {
         if (mSir != null) {
-            return mSir.displayName;
+            return mSir.getDisplayName();
         }
 
         return getContext().getString(R.string.sim_enabler_sim);
-    }
-
-    private void updateSummary() {
-        Resources res = getContext().getResources();
-        boolean isActivated = mSir.mStatus == SubscriptionManager.ACTIVE;
-        logd("updateSummary: subId " + mSir.subId + " isActivated = " + isActivated +
-                " slot id = " + mSlotId);
-
-        String simSlot = res.getString(R.string.sim_card_number_title, mSlotId + 1);
-        String summary = res.getString(R.string.sim_settings_summary, simSlot, mSir.number);
-        setSummary(summary);
-        updateCheckedState(isActivated);
     }
 
     private void updateCheckedState(boolean checked) {
@@ -278,10 +292,11 @@ public class MultiSimEnablerPreference extends SwitchPreference implements
 
     private int getActivatedSubInfoCount() {
         int activeSubInfoCount = 0;
-        List<SubInfoRecord> subInfoLists = SubscriptionManager.getActiveSubInfoList();
+        List<SubscriptionInfo> subInfoLists = mSubscriptionManager.getActiveSubscriptionInfoList();
+        SubscriptionController subController = SubscriptionController.getInstance();
         if (subInfoLists != null) {
-            for (SubInfoRecord subInfo : subInfoLists) {
-                if (subInfo.mStatus == SubscriptionManager.ACTIVE) activeSubInfoCount++;
+            for (SubscriptionInfo subInfo : subInfoLists) {
+                if (subInfo.getStatus() == SubscriptionManager.ACTIVE) activeSubInfoCount++;
             }
         }
         return activeSubInfoCount;
@@ -295,7 +310,7 @@ public class MultiSimEnablerPreference extends SwitchPreference implements
             return false;
         }
         for (int i = 0; i < TelephonyManager.getDefault().getPhoneCount(); i++) {
-            long[] subId = SubscriptionManager.getSubId(i);
+            int[] subId = SubscriptionManager.getSubId(i);
             if (TelephonyManager.getDefault().getCallState(subId[0])
                     != TelephonyManager.CALL_STATE_IDLE) {
                 logd("Call state for phoneId: " + i + " is not idle, EXIT!");
@@ -332,27 +347,20 @@ public class MultiSimEnablerPreference extends SwitchPreference implements
         mTargetState = enable;
 
         showProgressDialog(enable);
-        // mSwitch.setEnabled(false);
         if (enable) {
-            SubscriptionManager.activateSubId(mSir.subId);
+            SubscriptionManager.activateSubId(mSir.getSubscriptionId());
         } else {
-            SubscriptionManager.deactivateSubId(mSir.subId);
+            SubscriptionManager.deactivateSubId(mSir.getSubscriptionId());
         }
 
-        if (!mReceiverRegistered) {
-            getContext().registerReceiver(mReceiver, SUB_CHANGE_FILTER);
-            mReceiverRegistered = true;
-        }
+        mSubscriptionManager.addOnSubscriptionsChangedListener(mSubscriptionListener);
     }
 
     private void processSetUiccDone() {
         sendMessage(EVT_UPDATE, mParentHandler, MSG_DELAY_TIME);
         sendMessage(EVT_SHOW_RESULT_DLG, mHandler, MSG_DELAY_TIME);
         mTargetState = null;
-        if (mReceiverRegistered) {
-            getContext().unregisterReceiver(mReceiver);
-            mReceiverRegistered = false;
-        }
+        mSubscriptionManager.removeOnSubscriptionsChangedListener(mSubscriptionListener);
     }
 
     private void showDisableConfirmationDialog() {
@@ -420,24 +428,14 @@ public class MultiSimEnablerPreference extends SwitchPreference implements
         }
     };
 
-    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+    private final SubscriptionManager.OnSubscriptionsChangedListener mSubscriptionListener =
+            new SubscriptionManager.OnSubscriptionsChangedListener() {
         @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            if (TelephonyIntents.ACTION_SUBINFO_CONTENT_CHANGE.equals(action)) {
-                long subId = intent.getLongExtra(SubscriptionManager._ID,
-                        SubscriptionManager.INVALID_SUB_ID);
-                String column = intent.getStringExtra(TelephonyIntents.EXTRA_COLUMN_NAME);
-                int intValue = intent.getIntExtra(TelephonyIntents.EXTRA_INT_CONTENT, 0);
-                logd("Received ACTION_SUBINFO_CONTENT_CHANGE on subId: " + subId
-                        + "for " + column + " intValue: " + intValue);
-                if (mTargetState != null && mSir.subId == subId && column != null
-                        && column.equals(SubscriptionManager.SUB_STATE)) {
-                    if ((intValue == SubscriptionManager.ACTIVE && mTargetState) ||
-                            (intValue == SubscriptionManager.INACTIVE && !mTargetState)) {
-                        processSetUiccDone();
-                    }
-                }
+        public void onSubscriptionsChanged() {
+            logd("Received onSubscriptionChanged");
+            SubscriptionInfo sir = Utils.findRecordBySubId(getContext(), mSir.getSubscriptionId());
+            if (mTargetState == (sir != null)) {
+                processSetUiccDone();
             }
         }
     };
@@ -461,4 +459,69 @@ public class MultiSimEnablerPreference extends SwitchPreference implements
             }
         }
     };
+
+    private class SelectColorAdapter extends ArrayAdapter<CharSequence> {
+        private final Context mContext;
+        private final int mResId;
+
+        public SelectColorAdapter(Context context, int resource, String[] arr) {
+            super(context, resource, arr);
+            mContext = context;
+            mResId = resource;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            LayoutInflater inflater = LayoutInflater.from(mContext);
+            View rowView;
+            final ViewHolder holder;
+            final Resources res = mContext.getResources();
+            int iconSize = res.getDimensionPixelSize(R.dimen.color_swatch_size);
+            int strokeWidth = res.getDimensionPixelSize(R.dimen.color_swatch_stroke_width);
+
+            if (convertView == null) {
+                // Cache views for faster scrolling
+                rowView = inflater.inflate(mResId, parent, false);
+                holder = new ViewHolder();
+                ShapeDrawable drawable = new ShapeDrawable(new OvalShape());
+                drawable.setIntrinsicHeight(iconSize);
+                drawable.setIntrinsicWidth(iconSize);
+                drawable.getPaint().setStrokeWidth(strokeWidth);
+                holder.label = (TextView) rowView.findViewById(R.id.color_text);
+                holder.icon = (ImageView) rowView.findViewById(R.id.color_icon);
+                holder.swatch = drawable;
+                rowView.setTag(holder);
+            } else {
+                rowView = convertView;
+                holder = (ViewHolder) rowView.getTag();
+            }
+
+            holder.label.setText(getItem(position));
+            holder.swatch.getPaint().setColor(mTintArr[position]);
+            holder.swatch.getPaint().setStyle(Paint.Style.FILL_AND_STROKE);
+            holder.icon.setVisibility(View.VISIBLE);
+            holder.icon.setImageDrawable(holder.swatch);
+            return rowView;
+        }
+
+        @Override
+        public View getDropDownView(int position, View convertView, ViewGroup parent) {
+            View rowView = getView(position, convertView, parent);
+            final ViewHolder holder = (ViewHolder) rowView.getTag();
+
+            if (mTintSelectorPos == position) {
+                holder.swatch.getPaint().setStyle(Paint.Style.FILL_AND_STROKE);
+            } else {
+                holder.swatch.getPaint().setStyle(Paint.Style.STROKE);
+            }
+            holder.icon.setVisibility(View.VISIBLE);
+            return rowView;
+        }
+
+        private class ViewHolder {
+            TextView label;
+            ImageView icon;
+            ShapeDrawable swatch;
+        }
+    }
 }

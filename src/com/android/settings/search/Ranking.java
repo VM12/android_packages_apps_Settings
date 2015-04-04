@@ -30,6 +30,7 @@ import com.android.settings.WirelessSettings;
 import com.android.settings.accessibility.AccessibilitySettings;
 import com.android.settings.bluetooth.BluetoothSettings;
 import com.android.settings.deviceinfo.Memory;
+import com.android.settings.deviceinfo.UsbSettings;
 import com.android.settings.fuelgauge.PowerUsageSummary;
 import com.android.settings.inputmethod.InputMethodAndLanguageSettings;
 import com.android.settings.location.LocationSettings;
@@ -62,7 +63,7 @@ public final class Ranking {
     public static final int RANK_HOME = 6;
     public static final int RANK_DISPLAY = 7;
     public static final int RANK_NOTIFICATIONS = 9;
-    public static final int RANK_MEMORY = 10;
+    public static final int RANK_STORAGE = 10;
     public static final int RANK_POWER_USAGE = 11;
     public static final int RANK_USERS = 12;
     public static final int RANK_LOCATION = 13;
@@ -115,8 +116,9 @@ public final class Ranking {
         sRankMap.put(OtherSoundSettings.class.getName(), RANK_NOTIFICATIONS);
         sRankMap.put(ZenModeSettings.class.getName(), RANK_NOTIFICATIONS);
 
-        // Memory
-        sRankMap.put(Memory.class.getName(), RANK_MEMORY);
+        // Storage
+        sRankMap.put(Memory.class.getName(), RANK_STORAGE);
+        sRankMap.put(UsbSettings.class.getName(), RANK_STORAGE);
 
         // Battery
         sRankMap.put(PowerUsageSummary.class.getName(), RANK_POWER_USAGE);

@@ -69,6 +69,7 @@ public class DeviceInfoSettings extends SettingsPreferenceFragment implements In
     private static final String KEY_TERMS = "terms";
     private static final String KEY_LICENSE = "license";
     private static final String KEY_COPYRIGHT = "copyright";
+    private static final String KEY_WEBVIEW_LICENSE = "webview_license";
     private static final String KEY_SYSTEM_UPDATE_SETTINGS = "system_update_settings";
     private static final String PROPERTY_URL_SAFETYLEGAL = "ro.url.safetylegal";
     private static final String PROPERTY_SELINUX_STATUS = "ro.build.selinux";
@@ -112,7 +113,7 @@ public class DeviceInfoSettings extends SettingsPreferenceFragment implements In
         setStringSummary(KEY_BUILD_NUMBER, Build.DISPLAY);
         findPreference(KEY_BUILD_NUMBER).setEnabled(true);
         findPreference(KEY_KERNEL_VERSION).setSummary(getFormattedKernelVersion());
-        setValueSummary(KEY_MOD_VERSION, "ro.vm12_modversion");
+        setValueSummary(KEY_MOD_VERSION, "ro.cm.display.version");
         findPreference(KEY_MOD_VERSION).setEnabled(true);
         setValueSummary(KEY_MOD_BUILD_DATE, "ro.build.date");
 
@@ -168,6 +169,8 @@ public class DeviceInfoSettings extends SettingsPreferenceFragment implements In
                 Utils.UPDATE_PREFERENCE_FLAG_SET_TITLE_TO_MATCHING_ACTIVITY);
         Utils.updatePreferenceToSpecificActivityOrRemove(act, parentPreference, KEY_COPYRIGHT,
                 Utils.UPDATE_PREFERENCE_FLAG_SET_TITLE_TO_MATCHING_ACTIVITY);
+        Utils.updatePreferenceToSpecificActivityOrRemove(act, parentPreference, KEY_WEBVIEW_LICENSE,
+                Utils.UPDATE_PREFERENCE_FLAG_SET_TITLE_TO_MATCHING_ACTIVITY);
 
         // These are contained by the root preference screen
         parentPreference = getPreferenceScreen();
@@ -185,7 +188,7 @@ public class DeviceInfoSettings extends SettingsPreferenceFragment implements In
 
         // Read platform settings for additional system update setting
         removePreferenceIfBoolFalse(KEY_UPDATE_SETTING,
-                R.bool.config_additional_system_update_setting_enable);
+                getResources().getBoolean(R.bool.config_additional_system_update_setting_enable));
 
         // Remove regulatory information if none present.
         final Intent intent = new Intent(Settings.ACTION_SHOW_REGULATORY_INFO);
@@ -195,7 +198,11 @@ public class DeviceInfoSettings extends SettingsPreferenceFragment implements In
                 getPreferenceScreen().removePreference(pref);
             }
         }
+
         mAdvancedSettings = (SecureSettingSwitchPreference) findPreference(KEY_ADVANCED_MODE);
+        // If enabled by default, just remove the setting, because it's confusing.
+        removePreferenceIfBoolFalse(KEY_ADVANCED_MODE, !getResources().getBoolean(
+                com.android.internal.R.bool.config_advancedSettingsMode));
     }
 
     @Override
@@ -267,8 +274,21 @@ public class DeviceInfoSettings extends SettingsPreferenceFragment implements In
             }
         } else if (preference.getKey().equals(KEY_DEVICE_FEEDBACK)) {
             sendFeedback();
+        } else if (preference.getKey().equals(KEY_MOD_VERSION)) {
+            System.arraycopy(mHits, 1, mHits, 0, mHits.length-1);
+            mHits[mHits.length-1] = SystemClock.uptimeMillis();
+            if (mHits[0] >= (SystemClock.uptimeMillis()-500)) {
+                Intent intent = new Intent(Intent.ACTION_MAIN);
+                intent.putExtra("is_cm", true);
+                intent.setClassName("android",
+                        com.android.internal.app.PlatLogoActivity.class.getName());
+                try {
+                    startActivity(intent);
+                } catch (Exception e) {
+                    Log.e(LOG_TAG, "Unable to start activity " + intent.toString());
+                }
+            }
         }
-
         return super.onPreferenceTreeClick(preferenceScreen, preference);
     }
 
@@ -285,8 +305,8 @@ public class DeviceInfoSettings extends SettingsPreferenceFragment implements In
         }
     }
 
-    private void removePreferenceIfBoolFalse(String preference, int resId) {
-        if (!getResources().getBoolean(resId)) {
+    private void removePreferenceIfBoolFalse(String preference, boolean bool) {
+        if (!bool) {
             Preference pref = findPreference(preference);
             if (pref != null) {
                 getPreferenceScreen().removePreference(pref);
@@ -477,6 +497,9 @@ public class DeviceInfoSettings extends SettingsPreferenceFragment implements In
                 }
                 if (!checkIntentAction(context, "android.settings.COPYRIGHT")) {
                     keys.add(KEY_COPYRIGHT);
+                }
+                if (!checkIntentAction(context, "android.settings.WEBVIEW_LICENSE")) {
+                    keys.add(KEY_WEBVIEW_LICENSE);
                 }
                 if (UserHandle.myUserId() != UserHandle.USER_OWNER) {
                     keys.add(KEY_SYSTEM_UPDATE_SETTINGS);

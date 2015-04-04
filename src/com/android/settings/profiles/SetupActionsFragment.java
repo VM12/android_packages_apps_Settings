@@ -146,7 +146,8 @@ public class SetupActionsFragment extends SettingsPreferenceFragment
         rebuildItemList();
 
         setHasOptionsMenu(true);
-        if (mNewProfileMode) {
+        if (mNewProfileMode && savedInstanceState == null) {
+            // only pop this up on first creation
             requestFillProfileFromSettingsDialog();
         }
     }
@@ -723,12 +724,7 @@ public class SetupActionsFragment extends SettingsPreferenceFragment
         override.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                streamSettings.setOverride(isChecked);
                 seekBar.setEnabled(isChecked);
-
-                mProfile.setStreamSettings(streamSettings);
-                mAdapter.notifyDataSetChanged();
-                updateProfile();
             }
         });
         seekBar.setEnabled(streamSettings.isOverride());
@@ -739,19 +735,14 @@ public class SetupActionsFragment extends SettingsPreferenceFragment
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 int value = seekBar.getProgress();
+                streamSettings.setOverride(override.isChecked());
                 streamSettings.setValue(value);
                 mProfile.setStreamSettings(streamSettings);
                 mAdapter.notifyDataSetChanged();
                 updateProfile();
-                dialog.dismiss();
             }
         });
-        builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
+        builder.setNegativeButton(android.R.string.cancel, null);
         builder.show();
     }
 

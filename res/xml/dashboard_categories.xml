@@ -110,7 +110,7 @@
         </dashboard-tile>
 
     </dashboard-category>
-    
+      
         <!-- VM12 -->
     <dashboard-category
             android:id="@+id/vm12_section"
@@ -232,7 +232,6 @@
                 android:title="@string/profiles_settings_title"
                 android:icon="@drawable/ic_settings_profiles"
                 />
-
 
         <!-- Application Settings -->
         <dashboard-tile

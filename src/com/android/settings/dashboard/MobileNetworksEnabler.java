@@ -83,29 +83,8 @@ public class MobileNetworksEnabler extends GenericSwitchToggle  {
     }
 
     private void updateState() {
-        switch (mTelephonyManager.getDataState()) {
-            case TelephonyManager.DATA_CONNECTED:
-            case TelephonyManager.DATA_SUSPENDED:
-                setEnabled(true);
-                setChecked(mTelephonyManager.getDataEnabled());
-                break;
-
-            case TelephonyManager.DATA_CONNECTING:
-                setChecked(true);
-                setEnabled(mTelephonyManager.getDataEnabled());
-                break;
-
-            case TelephonyManager.DATA_DISCONNECTED:
-                setEnabled(true);
-                setChecked(mTelephonyManager.getDataEnabled());
-                break;
-
-            default:
-            case TelephonyManager.DATA_UNKNOWN:
-                setEnabled(false);
-                setChecked(false);
-                break;
-        }
+        setEnabled(mTelephonyManager.getDataState() != TelephonyManager.DATA_UNKNOWN);
+        setChecked(mTelephonyManager.getDataEnabled());
     }
 
     @Override
