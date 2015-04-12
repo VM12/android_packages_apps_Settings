@@ -37,6 +37,8 @@ public class ItemListAdapter extends ArrayAdapter<Item> {
         LOCKSCREENMODE_ITEM,
         TRIGGER_ITEM,
         APP_GROUP_ITEM
+        APP_GROUP_ITEM,
+        BRIGHTNESS_ITEM
     }
 
     public ItemListAdapter(Context context, List<Item> items) {
