@@ -163,8 +163,6 @@
     <string name="volbtn_cursor_control_on_reverse">Volume up/down moves cursor right/left</string>
     <string name="swap_volume_buttons_title">Reorient</string>
     <string name="swap_volume_buttons_summary">Swap volume buttons when the screen is rotated</string>
-    <string name="volume_keys_control_ring_stream_title">Volume keys control ringtone volume</string>
-    <string name="volume_keys_control_ring_stream_summary">If on, volume keys control ringtone volume. If off, volume keys control media volume.</string>
     <string name="power_end_call_title">End call</string>
     <string name="power_end_call_summary">Pressing the power button will end the current call</string>
     <string name="button_wake_title">Wake up device</string>
@@ -324,8 +322,6 @@
     <string name="privacy_guard_help_text">In this screen you can choose which apps Privacy Guard should be active for by simply tapping on them. Selected apps will not be able to access your personal data such as contacts, messages or call logs. Long pressing an app\'s entry opens its app details screen.\n\nBuilt-in apps are not shown by default but can be revealed by selecting the respective menu option.</string>
     <string name="privacy_guard_manager_show_system_apps">Show built-in apps</string>
 
-    <string name="app_ops_btn_text">Modify</string>
-
     <!-- Increasing ring tone volume -->
     <string name="increasing_ring_volume_option_title">Increasing ring volume</string>
     <string name="increasing_ring_min_volume_title">Start volume</string>
@@ -412,6 +408,10 @@
     <!-- Superuser indicator on status bar -->	
     <string name="su_indicator">Superuser indicator</string>	
     <string name="su_indicator_summary">Show superuser indicator on status bar when a session is active</string>
+
+    <!-- Privacy guard notification -->
+    <string name="privacy_guard_notification_title">Notification</string>
+    <string name="privacy_guard_notifiation_summary">Show a notification if privacy guard is active</string>
 
     <!-- Status bar - Battery -->
     <string name="status_bar_battery_style_title">Battery status style</string>
@@ -978,8 +978,6 @@
     <!-- CM Legal -->
     <string name="cmlicense_title">Team Nocturnal legal</string>
     <string name="settings_cmlicense_activity_title">Team Nocturnal legal</string>
-    <string name="cmlicense_title">CyanogenMod legal</string>
-    <string name="settings_cmlicense_activity_title">CyanogenMod legal</string>
 
     <!-- Sizes for pattern lockscreen -->
     <string name="lock_pattern_size_3" translatable="false">3 \u00d7 3</string>
@@ -1115,13 +1113,6 @@
     <string name="navigation_ring_title">Navigation ring targets</string>
     <string name="navigation_ring_message">Tap the edit icon to open the navigation ring for editing.\n\nSelect a target to configure its behavior.\n\nTap the \'\u2713\' icon to save your changes, or \'Restore defaults\' to reset the settings to defaults.</string>
 
-    <!-- Display & Lights screen, setting options for LCD density -->
-    <string name="lcd_density">LCD density</string>
-    <string name="dialog_title_lcd_density">LCD density</string>
-    <string name="lcd_density_value_format">%d DPI</string>
-    <string name="lcd_density_default_value_format">%d DPI (default)</string>
-    <string name="restarting_ui">Restarting UI\u2026</string>
-
     <!-- Stylus Icon -->
     <string name="stylus_icon_enabled_title">Show icon when using stylus</string>
     <string name="stylus_icon_enabled_summary">Show the pointer icon when hovering or drawing with the stylus</string>
@@ -1223,16 +1214,4 @@
     <string name="heads_up_notifications">Heads up</string>
     <string name="summary_heads_up_enabled">Pop-up notifications are enabled</string>
     <string name="summary_heads_up_disabled">Pop-up notifications are disabled</string>
-
-    <!-- SD card & phone storage settings screen, message on screen after user selects Factory data reset [CHAR LIMIT=NONE] -->
-    <string name="master_clear_desc_cm" product="tablet">This will erase all data from your tablet\'s <b>internal storage</b>, including:\n\n<li>Your device accounts</li>\n<li>System and app data and settings</li>\n<li>Downloaded apps</li></string>
-    <!-- SD card & phone storage settings screen, message on screen after user selects Factory data reset [CHAR LIMIT=NONE] -->
-    <string name="master_clear_desc_cm" product="default">This will erase all data from your phone\'s <b>internal storage</b>, including:\n\n<li>Your device accounts</li>\n<li>System and app data and settings</li>\n<li>Downloaded apps</li></string>
-
-    <!-- Killswitch -->
-    <string name="lock_to_cyanogen_title">Device Protection</string>
-    <string name="lock_to_cyanogen_summary">Require your Cyanogen OS account password even after a factory reset</string>
-    <string name="lock_to_cyanogen_create_account_msg">Your device uses the Cyanogen OS account password to protect your device even in the event of a factory reset. You will need to create a Cyanogen OS account.</string>
-    <string name="lock_to_cyanogen_disable_msg">Disabling this feature will allow unauthorized users to reset your phone to factory defaults if it is stolen. Your personal data may not be protected. Do you want to disable this feature?</string>
-    <string name="lock_to_cyanogen_master_clear_warning">Device Protection is enabled. Please disable to continue resetting your device.</string>
 </resources>
