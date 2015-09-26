@@ -72,6 +72,7 @@
     <uses-permission android:name="android.permission.OEM_UNLOCK_STATE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.HARDWARE_ABSTRACTION_ACCESS" />
+    <uses-permission android:name="cyanogenmod.permission.MODIFY_PROFILES" />
 
     <permission
         android:name="cyanogenmod.permission.PROTECTED_APP"
@@ -714,17 +715,20 @@
         </activity>
 
         <activity android:name="SettingsLicenseActivity"
-                android:label="@string/settings_license_activity_title"
-                android:theme="@android:style/Theme.Material.Light.Panel"
-                android:configChanges="orientation|screenSize"
-                android:parentActivityName="Settings$DeviceInfoSettingsActivity">
-            <intent-filter>
-                <action android:name="android.settings.LICENSE" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-            <meta-data android:name="com.android.settings.PRIMARY_PROFILE_CONTROLLED"
-                android:value="true" />
-        </activity>
+                 android:label="@string/settings_license_activity_title"
+                 android:theme="@android:style/Theme.Material.Light.Panel"
+                 android:launchMode="singleTask"
+                 android:noHistory="true"
+                 android:excludeFromRecents="true" 
+                 android:configChanges="orientation|screenSize"
+                 android:parentActivityName="Settings$DeviceInfoSettingsActivity">
+             <intent-filter>
+                 <action android:name="android.settings.LICENSE" />
+                 <category android:name="android.intent.category.DEFAULT" />
+             </intent-filter>
+             <meta-data android:name="com.android.settings.PRIMARY_PROFILE_CONTROLLED"
+                 android:value="true" />
+         </activity>
 
         <activity android:name="Settings$ManageApplicationsActivity"
                 android:label="@string/applications_settings"

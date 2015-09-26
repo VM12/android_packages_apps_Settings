@@ -24,6 +24,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.database.ContentObserver;
 import android.graphics.drawable.Drawable;
@@ -40,6 +41,7 @@ import android.os.UserManager;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceGroup;
+import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
 import android.preference.SwitchPreference;
 import android.provider.Settings;
@@ -55,6 +57,7 @@ import com.android.settings.HelpUtils;
 import com.android.settings.R;
 import com.android.settings.SettingsActivity;
 import com.android.settings.SettingsPreferenceFragment;
+import com.android.settings.Utils;
 
 import java.util.List;
 
@@ -72,6 +75,8 @@ public class PowerUsageSummary extends SettingsPreferenceFragment
     private static final String KEY_APP_LIST = "app_list";
 
     private static final String KEY_PERF_PROFILE = "pref_perf_profile";
+
+    private static final String KEY_FORCE_FAST_CHARGE = "force_fast_charge";
 
     private static final String KEY_BATTERY_SAVER = "low_power";
 
@@ -104,8 +109,10 @@ public class PowerUsageSummary extends SettingsPreferenceFragment
     private SwitchPreference mBatterySaverPref;
     private String[] mPerfProfileEntries;
     private String[] mPerfProfileValues;
-    private String mPerfProfileDefaultEntry;
     private PerformanceProfileObserver mPerformanceProfileObserver = null;
+    private String mPerfProfileDefaultEntry;
+    private SwitchPreference mForceFastCharge;
+    private String mFastChargePath;
 
     private BroadcastReceiver mBatteryInfoReceiver = new BroadcastReceiver() {
 
@@ -171,6 +178,14 @@ public class PowerUsageSummary extends SettingsPreferenceFragment
         }
 
         mPerformanceProfileObserver = new PerformanceProfileObserver(new Handler());
+
+        mFastChargePath = getFastChargePath(getActivity());
+        if (mFastChargePath == null) {
+            removePreference(KEY_FORCE_FAST_CHARGE);
+        } else {
+            mForceFastCharge = (SwitchPreference) findPreference(KEY_FORCE_FAST_CHARGE);
+            mForceFastCharge.setChecked("1".equals(Utils.fileReadOneLine(mFastChargePath)));
+        }
     }
 
     @Override
@@ -232,6 +247,12 @@ public class PowerUsageSummary extends SettingsPreferenceFragment
 
     @Override
     public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen, Preference preference) {
+        if (preference == mForceFastCharge) {
+            Utils.fileWriteOneLine(mFastChargePath,
+                    mForceFastCharge.isChecked() ? "1" : "0");
+            return true;
+        }
+
         if (preference instanceof BatteryHistoryPreference) {
             mStatsHelper.storeStatsHistoryInFile(BATTERY_HISTORY_FILE);
             Bundle args = new Bundle();
@@ -369,8 +390,8 @@ public class PowerUsageSummary extends SettingsPreferenceFragment
 
     private boolean updateBatteryStatus(Intent intent) {
         if (intent != null) {
-            String batteryLevel = com.android.settings.Utils.getBatteryPercentage(intent);
-            String batteryStatus = com.android.settings.Utils.getBatteryStatus(getResources(),
+            String batteryLevel = Utils.getBatteryPercentage(intent);
+            String batteryStatus = Utils.getBatteryStatus(getResources(),
                     intent);
             if (!batteryLevel.equals(mBatteryLevel) || !batteryStatus.equals(mBatteryStatus)) {
                 mBatteryLevel = batteryLevel;
@@ -536,4 +557,30 @@ public class PowerUsageSummary extends SettingsPreferenceFragment
             super.handleMessage(msg);
         }
     };
+
+    private static String getFastChargePath(Context ctx) {
+        String path = ctx.getResources().getString(
+                com.android.internal.R.string.config_fast_charge_path);
+
+        if (Utils.fileIsWritable(path)) {
+            return path;
+        } else {
+            return null;
+        }
+    }
+
+
+    /**
+     * Restore the properties associated with this preference on boot
+     *
+     * @param ctx A valid context
+     */
+    public static void restore(Context ctx) {
+        String path = getFastChargePath(ctx);
+        if (path != null) {
+            final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(ctx);
+            final boolean enabled = prefs.getBoolean(KEY_FORCE_FAST_CHARGE, false);
+            Utils.fileWriteOneLine(path, enabled ? "1" : "0");
+        }
+    }
 }

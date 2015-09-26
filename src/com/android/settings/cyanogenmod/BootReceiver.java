@@ -19,6 +19,8 @@ package com.android.settings.cyanogenmod;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import com.android.settings.ButtonSettings;
+import com.android.settings.DisplaySettings;
 import android.content.SharedPreferences;
 import android.os.SystemProperties;
 import android.preference.PreferenceManager;
@@ -26,6 +28,7 @@ import android.util.Log;
 
 import com.android.settings.ButtonSettings;
 import com.android.settings.DisplaySettings;
+import com.android.settings.fuelgauge.PowerUsageSummary;
 import com.android.settings.R;
 import com.android.settings.Utils;
 import com.android.settings.hardware.VibratorIntensity;
@@ -69,6 +72,7 @@ public class BootReceiver extends BroadcastReceiver {
         DisplayGamma.restore(ctx);
         VibratorIntensity.restore(ctx);
         InputMethodAndLanguageSettings.restore(ctx);
+        PowerUsageSummary.restore(ctx);
     }
 
     private void initFreqCapFiles(Context ctx)

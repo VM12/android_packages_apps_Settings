@@ -18,12 +18,8 @@
     <string name="header_category">Team-Nocturnal</string>
     <string name="tweaks_title">VM12 Tweaks</string>
     <string name="keywords_vm12">The Sloth is hear</string>
-    <!-- About phone screen, VM12 version -->
+       <!-- About phone screen, VM12 version -->
     <string name="vm12_mod_version">VM12 version</string>
-    <!-- Change Log -->
-    <string name="changelog_title">VM12.1 Changelog</string>
-    <string name="changelog_title_summary">View recent VM12.1 changes</string>
-    <string name="changelog_error">Unable to load changelog</string>
     <!-- Density changer -->
     <string name="dpi">DPI</string>
     <string name="su_dialog_error_title">Warning</string>
@@ -82,12 +78,8 @@
     <string name="advanced_reboot_oneclick">One click reboot</string>
     <string name="advanced_reboot_oneclick_summary">Instantly trigger reboot action</string>
 
-    <!-- Headphones icon switch -->
-    <string name="show_headset_icon_title">Headset icon</string>
-    <string name="show_headset_icon_summary">Shows icon when headsets are connected.</string>
-
-    <!-- Screenshot sound -->
-    <string name="screenshot_sound_title">Screenshot sound</string>
-    <string name="screenshot_sound_summary">Plays sound effect when screenshot is taken</string>
+    <!-- Three-fingers-swipe to screenshot -->
+    <string name="three_finger_gesture">Three finger gesture</string>
+    <string name="three_finger_gesture_summary">Swipe three finger to screenshot</string>
 
     </resources>

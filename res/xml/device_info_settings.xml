@@ -52,6 +52,12 @@
             android:title="@string/advanced_mode_title"
             android:summary="@string/advanced_mode_summary" />
 
+       <!-- Change Log -->
+        <PreferenceScreen android:key="changelog"
+                android:title="@string/changelog_title"
+                android:summary="@string/changelog_title_summary"
+                android:fragment="com.android.settings.vm12.ChangeLog" /> 
+
         <!-- Device status - launches activity -->
         <PreferenceScreen android:key="status_info"
                 android:title="@string/device_status" 
@@ -95,7 +101,12 @@
             <!-- CM License information -->
             <PreferenceScreen
                     android:key="cmlicense"
-                    android:title="@string/cmlicense_title" />
+                    android:title="@string/cmlicense_title" /> 
+
+            <!-- Builds -->
+            <PreferenceScreen
+                    android:key="builds"
+                    android:title="@string/builds_title" />
 
             <!-- Terms and conditions -->
             <PreferenceScreen

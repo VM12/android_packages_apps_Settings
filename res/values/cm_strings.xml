@@ -470,6 +470,9 @@
     <string name="notification_light_default_value">Default</string>
     <string name="notification_light_missed_call_title">Missed call</string>
     <string name="notification_light_voicemail_title">Voicemail</string>
+    <string name="notification_light_brightness" translatable="false">@string/brightness</string>
+    <string name="notification_light_screen_on">Lights with screen on</string>
+    <string name="keywords_lights_brightness_level">dim leds brightness</string>
 
     <!-- Sound & notification > Sound section: Title for the option defining the default notification ringtone. [CHAR LIMIT=30] -->
     <string name="notification_ringtone_title_cm">Notification tone</string>
@@ -976,8 +979,12 @@
     <string name="edge_gesture_service_summary">Don\'t send touch events for navigation and status bar gestures to apps</string>
 
     <!-- CM Legal -->
-    <string name="cmlicense_title">Team Nocturnal legal</string>
-    <string name="settings_cmlicense_activity_title">Team Nocturnal legal</string>
+    <string name="cmlicense_title">Team Nocturnal Legal</string>
+    <string name="settings_cmlicense_activity_title">Team Nocturnal Legal</string>
+
+    <!-- Builds -->
+    <string name="builds_title">Check for builds newer then 9 26 2015</string>
+    <string name="settings_builds_activity_title">Check Android File Host For New Builds</string>
 
     <!-- Sizes for pattern lockscreen -->
     <string name="lock_pattern_size_3" translatable="false">3 \u00d7 3</string>
@@ -1047,6 +1054,7 @@
     <string name="qs_tile_usb_tether">USB tethering</string>
     <string name="qs_tile_heads_up">Heads up</string>
     <string name="qs_ambient_display">Ambient Display</string>
+    <string name="qs_tile_music">Music</string>
 
     <string name="qs_main_tiles_title">Enlarge first row</string>
     <string name="qs_main_tiles_summary_on">Two main tiles on the first row</string>
@@ -1214,4 +1222,50 @@
     <string name="heads_up_notifications">Heads up</string>
     <string name="summary_heads_up_enabled">Pop-up notifications are enabled</string>
     <string name="summary_heads_up_disabled">Pop-up notifications are disabled</string>
+
+    <!-- Keep screen on strings -->
+    <string name="keep_screen_on_never">Never</string>
+    <string name="keep_screen_on_debugging">While USB debugging</string>
+    <string name="keep_screen_on_charging">While charging</string>
+
+    <string name="double_tap_sleep_anywhere_title">Double-tap to sleep</string>
+    <string name="double_tap_sleep_anywhere_summary">Double tap lockscreen to put the device to sleep</string>
+
+    <!-- Sound settings screen, setting check box label -->
+    <string name="camera_sounds_title">Camera shutter sound</string>
+
+    <!-- Force fast charge -->
+    <string name="pref_force_fast_charge_title">Force fast charge</string>
+
+    <!-- Custom notification panel header -->
+    <string name="custom_statusbar_header_title">Contextual notification panel header</string>
+    <string name="custom_statusbar_header_summary">Sets the background of the notification panel header to an image based on the current date and time</string>
+
+    <!-- Contributors cloud activity -->
+    <string name="contributors_cloud_fragment_title">Contributors</string>
+    <string name="contributors_cloud_loading_message">Loading contributors data\u2026</string>
+    <string name="contributors_cloud_failed_message">Cannot load contributors data</string>
+    <string name="contributor_info_menu">Contributor info</string>
+    <string name="contributor_info_msg">
+        <![CDATA[<b>Name:</b> <xliff:g id="name">%1$s</xliff:g><br/><br/>
+                 <b>Nick:</b> <xliff:g id="nick">%2$s</xliff:g><br/><br/>
+                 <b>Commits:</b> <xliff:g id="commits">%3$s</xliff:g><br/><br/>
+                 <b>Rank:</b> <xliff:g id="rank">%4$s</xliff:g>]]></string>
+    <string name="contributions_info_menu">Contributions info</string>
+    <string name="contributions_info_msg">
+        <![CDATA[<b>Total contributors:</b> <xliff:g id="total_contributors">%1$s</xliff:g><br/><br/>
+                 <b>Total commits:</b> <xliff:g id="total_commits">%2$s</xliff:g><br/><br/>
+                 <b>Last update:</b> <xliff:g id="date">%3$s</xliff:g>]]></string>
+
+    <string name="quick_settings_reset_message">Reset quick settings tiles?</string>
+
+    <!-- Wakelock blocker -->
+    <string name="battery_optimizer_title">Battery optimizer</string>
+    <string name="wakelock_blocker_title">Wakelock blocker</string>
+    <string name="wakelock_blocker_summary">Block system wakelocks</string>
+    <string name="wakelock_blocker_save">Save</string>
+    <string name="wakelock_list_header">Available wakelocks</string>
+    <string name="wakelock_blocker_reload">Reload</string>
+    <string name="wakelock_blocker_warning_title">Proceed with caution</string>
+    <string name="wakelock_blocker_warning">Blocking wakelocks have the potential to cause instability, crashes or data loss</string>
 </resources>

@@ -64,7 +64,8 @@ public class DeviceInfoSettings extends SettingsPreferenceFragment implements In
     private static final String LOG_TAG = "DeviceInfoSettings";
     private static final String FILENAME_PROC_VERSION = "/proc/version";
     private static final String FILENAME_MSV = "/sys/board_properties/soc/msv";
-    private static final String PROPERTY_CMLICENSE_URL = "ro.cmlegal.url";
+    private static final String PROPERTY_CMLICENSE_URL = "ro.VM12legal.url";
+    private static final String PROPERTY_BUILDS_URL = "ro.builds.url";
 
     private static final String KEY_CONTAINER = "container";
     private static final String KEY_REGULATORY_INFO = "regulatory_info";
@@ -90,6 +91,7 @@ public class DeviceInfoSettings extends SettingsPreferenceFragment implements In
     private static final String KEY_MOD_BUILD_DATE = "build_date";
     private static final String KEY_CM_UPDATES = "cm_updates";
     private static final String KEY_CM_LICENSE = "cmlicense";
+    private static final String KEY_BUILDS = "builds";
 
     static final int TAPS_TO_BE_A_DEVELOPER = 7;
 
@@ -296,6 +298,16 @@ public class DeviceInfoSettings extends SettingsPreferenceFragment implements In
             final Intent intent = new Intent(Intent.ACTION_VIEW);
             intent.addCategory(Intent.CATEGORY_DEFAULT);
             intent.setData(Uri.parse(userCMLicenseUrl));
+            try {
+                startActivity(intent);
+            } catch (Exception e) {
+                Log.e(LOG_TAG, "Unable to start activity " + intent.toString());
+            }
+         } else if (preference.getKey().equals(KEY_BUILDS)) {
+            String userbuildsUrl = SystemProperties.get(PROPERTY_BUILDS_URL);
+            final Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.addCategory(Intent.CATEGORY_DEFAULT);
+            intent.setData(Uri.parse(userbuildsUrl));
             try {
                 startActivity(intent);
             } catch (Exception e) {
